@@ -1,10 +1,8 @@
 pipeline {
     agent any
-
     tools {
         maven 'Maven3' // Ensure this matches the name in Global Tool Configuration
     }
-
     stages {
         stage('Build') {
             steps {
@@ -18,13 +16,11 @@ pipeline {
                 }
             }
         }
-
         stage("Deploy to QA") {
             steps {
                 echo("deploy to qa")
             }
         }
-
         stage('Regression Automation Test') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
@@ -33,7 +29,6 @@ pipeline {
                 }
             }
         }
-
         stage('Publish Extent Report') {
             steps {
                 publishHTML([allowMissing: false,
