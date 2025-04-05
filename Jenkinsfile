@@ -40,10 +40,14 @@ pipeline {
 
         stage('Publish Extent Report') {
             steps {
+                // Copy the report to the HTTP server directory
+                sh "cp build/TestExecutionReport.html /path/to/http/server/directory"
+
+                // Publish the HTML report with a link to the HTTP server
                 publishHTML([allowMissing: false,
-                             alwaysLinkToLastBuild: false,
+                             alwaysLinkToLastBuild: true,
                              keepAll: true,
-                             reportDir: 'build',
+                             reportDir: '/path/to/http/server/directory',
                              reportFiles: 'TestExecutionReport.html',
                              reportName: 'HTML Extent Report',
                              reportTitles: ''])
