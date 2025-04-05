@@ -40,13 +40,39 @@ pipeline {
 
         stage('Publish Extent Report') {
             steps {
+                // Copy the report to the HTTP server directory
+                sh "cp build/TestExecutionReport.html /path/to/http/server/directory"
+
+                // Publish the HTML report with a link to the HTTP server
                 publishHTML([allowMissing: false,
-                             alwaysLinkToLastBuild: false,
+                             alwaysLinkToLastBuild: true,
                              keepAll: true,
-                             reportDir: 'build',
+                             reportDir: '/path/to/http/server/directory',
                              reportFiles: 'TestExecutionReport.html',
                              reportName: 'HTML Extent Report',
                              reportTitles: ''])
+            }
+        }
+
+        stage('Jira Integration') {
+            steps {
+                jiraSendBuildInfo site: 'manulife-asia',
+                                  projectKey: 'IAM-5140',
+                                  buildNumber: currentBuild.number,
+                                  buildResult: currentBuild.result,
+                                  credentialsId: 'jira-jenkins'
+            }
+        }
+
+        stage('Update Jira Issue with Report Link') {
+            steps {
+                script {
+                    def reportUrl = "http://your-http-server/TestExecutionReport.html"
+                    jiraIssueUpdater site: 'manulife-asia',
+                                     issueKey: 'IAM-5140',
+                                     comment: "The HTML Extent Report for this build can be accessed here.",
+                                     credentialsId: 'jira-jenkins'
+                }
             }
         }
     }
