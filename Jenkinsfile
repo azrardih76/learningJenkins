@@ -6,6 +6,12 @@ pipeline {
     }
 
     stages {
+        stage('Pre-Checkout') {
+            steps {
+                sh 'git config http.sslVerify false'
+            }
+        }
+
         stage('Checkout') {
             steps {
                 git 'https://github.com/azrardih76/learningJenkins'
@@ -56,11 +62,14 @@ pipeline {
 
         stage('Jira Integration') {
             steps {
-                jiraSendBuildInfo site: 'https://manulife-asia.atlassian.net/',
-                                  projectKey: 'IAM-5140',
-                                  buildNumber: currentBuild.number,
-                                  buildResult: currentBuild.result,
-                                  credentialsId: 'jira-jenkins'
+                script {
+                    echo "Sending build info to Jira..."
+                    jiraSendBuildInfo site: 'https://manulife-asia.atlassian.net/',
+                                      projectKey: 'IAM-5140',
+                                      buildNumber: currentBuild.number,
+                                      buildResult: currentBuild.result,
+                                      credentialsId: 'jira-jenkins'
+                }
             }
         }
 
@@ -68,9 +77,21 @@ pipeline {
             steps {
                 script {
                     def reportUrl = "${env.JENKINS_URL}job/${env.JOB_NAME}/${env.BUILD_NUMBER}/HTML_20Report/TestExecutionReport.html"
+                    echo "Updating Jira issue with report link: ${reportUrl}"
+
+                    def testResults = testngResults '**/target/testng-results.xml'
+                    def totalTests = testResults.totalCount
+                    def failedTests = testResults.failCount
+                    def passedTests = totalTests - failedTests
+
+                    def comment = "The HTML Extent Report for this build can be accessed here.\n"
+                    comment += "Total tests executed: ${totalTests}\n"
+                    comment += "Tests passed: ${passedTests}\n"
+                    comment += "Tests failed: ${failedTests}\n"
+
                     jiraIssueUpdater site: 'https://manulife-asia.atlassian.net/',
                                      issueKey: 'IAM-5140',
-                                     comment: "The HTML Extent Report for this build can be accessed here.",
+                                     comment: comment,
                                      credentialsId: 'jira-jenkins'
                 }
             }
