@@ -56,7 +56,7 @@ pipeline {
 
         stage('Jira Integration') {
             steps {
-                jiraSendBuildInfo site: 'manulife-asia',
+                jiraSendBuildInfo site: 'https://manulife-asia.atlassian.net/',
                                   projectKey: 'IAM-5140',
                                   buildNumber: currentBuild.number,
                                   buildResult: currentBuild.result,
@@ -67,8 +67,8 @@ pipeline {
         stage('Update Jira Issue with Report Link') {
             steps {
                 script {
-                    def reportUrl = "http://your-http-server/TestExecutionReport.html"
-                    jiraIssueUpdater site: 'manulife-asia',
+                    def reportUrl = "${env.JENKINS_URL}job/${env.JOB_NAME}/${env.BUILD_NUMBER}/HTML_20Report/TestExecutionReport.html"
+                    jiraIssueUpdater site: 'https://manulife-asia.atlassian.net/',
                                      issueKey: 'IAM-5140',
                                      comment: "The HTML Extent Report for this build can be accessed here.",
                                      credentialsId: 'jira-jenkins'
